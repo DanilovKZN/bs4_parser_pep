@@ -21,11 +21,17 @@ def whats_new(session):
     response = get_response(session, whats_new_url)
     if response is None:
         return
-    
+
     soup = BeautifulSoup(response.text, features='lxml')
     main_div = find_tag(soup, 'section', attrs={'id': 'what-s-new-in-python'})
-    div_with_ul = find_tag(main_div, 'div', attrs={'class': 'toctree-wrapper compound'})
-    sections_by_python = div_with_ul.find_all('li', attrs={'class': 'toctree-l1'})
+    div_with_ul = find_tag(
+        main_div,
+        'div',
+        attrs={'class': 'toctree-wrapper compound'}
+    )
+    sections_by_python = div_with_ul.find_all(
+        'li', attrs={'class': 'toctree-l1'}
+    )
 
     # Печать первого найденного элемента.
     results = [('Ссылка на статью', 'Заголовок', 'Редактор, Автор')]
@@ -36,7 +42,7 @@ def whats_new(session):
         response = get_response(session, version_link)
 
         if response is None:
-            continue 
+            continue
 
         soup = BeautifulSoup(response.text, features='lxml')
         h1 = find_tag(soup, 'h1')
@@ -54,7 +60,6 @@ def latest_versions(session):
     response = get_response(session, MAIN_DOC_URL)
     if response is None:
         return
-    
     soup = BeautifulSoup(response.text, features='lxml')
     sidebar = find_tag(soup, 'div', attrs={'class': 'menu-wrapper'})
     ul_tags = sidebar.find_all('ul')
@@ -93,7 +98,11 @@ def download(session):
     soup = BeautifulSoup(response.text, features='lxml')
     main_tag = find_tag(soup, 'div', {'role': 'main'})
     table_tag = find_tag(main_tag, 'table', {'class': 'docutils'})
-    pdf_a4_tag = find_tag(table_tag, 'a', {'href': re.compile(r'.+pdf-a4\.zip$')})
+    pdf_a4_tag = find_tag(
+        table_tag,
+        'a',
+        {'href': re.compile(r'.+pdf-a4\.zip$')}
+    )
     pdf_a4_link = pdf_a4_tag['href']
     archive_url = urljoin(downloads_url, pdf_a4_link)
     filename = archive_url.split('/')[-1]
@@ -117,9 +126,13 @@ def pep(session):
 
     pep_dict = {}
     status_list = []
-    
+
     soup = BeautifulSoup(response.text, features='lxml')
-    pep_content = find_tag(soup, 'section', attrs={'id': 'pep-content'})
+    pep_content = find_tag(
+        soup,
+        'section',
+        attrs={'id': 'pep-content'}
+    )
     tbody = pep_content.find_all('tbody')
 
     # Создание словаря: ссылка - статус из общей таблицы ({'/pep-0001': '', '/pep-0004': ''...})
@@ -127,7 +140,10 @@ def pep(session):
         tr = body.find_all('tr')
         for element in tr:
             td_pep_first = element.find('td')
-            td_pep_second = element.find('a', attrs={'class': 'pep reference internal'})
+            td_pep_second = element.find(
+                'a',
+                attrs={'class': 'pep reference internal'}
+            )
             if td_pep_second != None:
                 href = td_pep_second['href']
                 if not href in pep_dict:
@@ -144,7 +160,7 @@ def pep(session):
             if 'Status' in string_in_dl:
                 status = string_in_dl.find_next_sibling().string
 
-                if not pep_dict[href] in EXPECTED_STATUS:
+                if pep_dict[href] not in EXPECTED_STATUS:
                     error_msg = f'Не найден статус в общей таблице {pep_dict[href]}'
                     logging.error(error_msg, stack_info=True)
                     raise ParserFindStatusException(error_msg)
@@ -195,6 +211,7 @@ def main():
         control_output(results, args)
 
     logging.info('Парсер завершил работу.')
+
 
 if __name__ == '__main__':
     main()

@@ -25,7 +25,7 @@ def default_output(results):
             print(f'{row}: {results[row]}')
     else:
         for row in results:
-            print(*row)    
+            print(*row)
 
 
 def pretty_output(results):

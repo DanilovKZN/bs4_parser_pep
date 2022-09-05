@@ -4,7 +4,7 @@ MAIN_DOC_URL = 'https://docs.python.org/3/'
 
 PEPS_URL = 'https://peps.python.org/'
 
-BASE_DIR = Path(__file__).parent 
+BASE_DIR = Path(__file__).parent
 
 PATTERN = r'Python (?P<version>\d\.\d+) \((?P<status>.*)\)'
 
@@ -22,7 +22,7 @@ EXPECTED_STATUS = {
 }
 
 PEP_STATUS = [
-    'Active', 
+    'Active',
     'Accepted',
     'Deferred',
     'Final',
