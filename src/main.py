@@ -17,11 +17,9 @@ from utils import find_tag, get_response
 
 def whats_new(session):
     whats_new_url = urljoin(MAIN_DOC_URL, 'whatsnew/')
-
     response = get_response(session, whats_new_url)
     if response is None:
         return
-
     soup = BeautifulSoup(response.text, features='lxml')
     main_div = find_tag(soup, 'section', attrs={'id': 'what-s-new-in-python'})
     div_with_ul = find_tag(
@@ -51,7 +49,6 @@ def whats_new(session):
         results.append(
             (version_link, h1.text, dl_text)
         )
-    
     return results
 
 
@@ -135,7 +132,8 @@ def pep(session):
     )
     tbody = pep_content.find_all('tbody')
 
-    # Создание словаря: ссылка - статус из общей таблицы ({'/pep-0001': '', '/pep-0004': ''...})
+    # Создание словаря:
+    # ссылка - статус из общей таблицы ({'/pep-0001': '', '/pep-0004': ''...})
     for body in tbody:
         tr = body.find_all('tr')
         for element in tr:
@@ -144,9 +142,9 @@ def pep(session):
                 'a',
                 attrs={'class': 'pep reference internal'}
             )
-            if td_pep_second != None:
+            if td_pep_second is not None:
                 href = td_pep_second['href']
-                if not href in pep_dict:
+                if href not in pep_dict:
                     pep_dict[href] = td_pep_first.text[1:]
 
     # Переход по ссылке + сравнение с основной + подсчет статусов
@@ -155,31 +153,37 @@ def pep(session):
         response_link = session.get(version_link)
         soup = BeautifulSoup(response_link.text, features='lxml')
         dl = soup.find('dl')
-
-        for string_in_dl in dl:
-            if 'Status' in string_in_dl:
-                status = string_in_dl.find_next_sibling().string
-
-                if pep_dict[href] not in EXPECTED_STATUS:
-                    error_msg = f'Не найден статус в общей таблице {pep_dict[href]}'
-                    logging.error(error_msg, stack_info=True)
-                    raise ParserFindStatusException(error_msg)
-
-                if not status in EXPECTED_STATUS[pep_dict[href]]:
-                    error_msg = (
-                        f'Несовподающие статусы:'
-                        f'Пришло: {status}'
-                        f'Должно было: {EXPECTED_STATUS[pep_dict[href]]}'
-                        )
-                    logging.error(error_msg, stack_info=True)
-
-                if status in PEP_STATUS:
-                    status_list.append(status)
+        status_list.append(status_search(dl, pep_dict[href]))
 
     # Считаем статусы + итоговое значение
     count_status_dict = dict(Counter(status_list))
     count_status_dict['Total'] = sum(count_status_dict.values())
     return count_status_dict
+
+
+def status_search(dl_tags, status_in_external_table):
+    """Поиск статусов и занесение их в список."""
+    for string_in_dl in dl_tags:
+        if 'Status' in string_in_dl:
+            status = string_in_dl.find_next_sibling().string
+            if status_in_external_table not in EXPECTED_STATUS:
+                error_msg = (
+                    f'Не найден статус {status_in_external_table}'
+                    f'в общей таблице.'
+                )
+                logging.error(error_msg, stack_info=True)
+                raise ParserFindStatusException(error_msg)
+
+            if status not in EXPECTED_STATUS[status_in_external_table]:
+                error_msg = (
+                    f'Несовподающие статусы:'
+                    f'Пришло: {status}'
+                    f'Должно было: {EXPECTED_STATUS[status_in_external_table]}'
+                    )
+                logging.error(error_msg, stack_info=True)
+
+            if status in PEP_STATUS:
+                return status
 
 
 MODE_TO_FUNCTION = {
