@@ -1,8 +1,12 @@
+appdirs==1.4.4
 attrs==21.4.0
 beautifulsoup4==4.9.3
+cattrs==22.1.0
 certifi==2021.10.8
 chardet==4.0.0
 charset-normalizer==2.0.12
+colorama==0.4.5
+exceptiongroup==1.0.0rc8
 flake8==4.0.1
 idna==2.10
 importlib-metadata==4.2.0
