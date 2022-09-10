@@ -9,6 +9,11 @@ def get_response(session, url):
     """Перехват ошибки RequestException."""
     try:
         response = session.get(url)
+        if response is None:
+            logging.exception(
+                f'Ничего не нашлось на {url}'
+            )
+            raise Exception('Ничего не нашлось :(')
         response.encoding = 'utf-8'
         return response
     except RequestException:

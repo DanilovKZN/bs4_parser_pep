@@ -2,7 +2,7 @@ import logging
 import re
 import requests_cache
 
-from collections import Counter
+from collections import Counter, defaultdict
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 from tqdm import tqdm
@@ -18,8 +18,6 @@ from utils import find_tag, get_response
 def whats_new(session):
     whats_new_url = urljoin(MAIN_DOC_URL, 'whatsnew/')
     response = get_response(session, whats_new_url)
-    if response is None:
-        return
     soup = BeautifulSoup(response.text, features='lxml')
     main_div = find_tag(soup, 'section', attrs={'id': 'what-s-new-in-python'})
     div_with_ul = find_tag(
@@ -37,7 +35,7 @@ def whats_new(session):
         version_a_tag = section.find('a')
         href = version_a_tag['href']
         version_link = urljoin(whats_new_url, href)
-        response = get_response(session, version_link)
+        response = session.get(version_link)
 
         if response is None:
             continue
@@ -55,11 +53,11 @@ def whats_new(session):
 def latest_versions(session):
     """Поиск последних версий."""
     response = get_response(session, MAIN_DOC_URL)
-    if response is None:
-        return
     soup = BeautifulSoup(response.text, features='lxml')
     sidebar = find_tag(soup, 'div', attrs={'class': 'menu-wrapper'})
     ul_tags = sidebar.find_all('ul')
+    if len(ul_tags) == 0:
+        raise Exception('Теги <ul> не нашлись :(')
 
     for ul in ul_tags:
         if 'All versions' in ul.text:
@@ -88,10 +86,6 @@ def latest_versions(session):
 def download(session):
     downloads_url = urljoin(MAIN_DOC_URL, 'download.html')
     response = get_response(session, downloads_url)
-
-    if response is None:
-        return
-
     soup = BeautifulSoup(response.text, features='lxml')
     main_tag = find_tag(soup, 'div', {'role': 'main'})
     table_tag = find_tag(main_tag, 'table', {'class': 'docutils'})
@@ -118,10 +112,7 @@ def download(session):
 def pep(session):
     """Поиск PEP'ов."""
     response = get_response(session, PEPS_URL)
-    if response is None:
-        return
-
-    pep_dict = {}
+    pep_dict = defaultdict(str)
     status_list = []
 
     soup = BeautifulSoup(response.text, features='lxml')

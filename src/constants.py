@@ -10,6 +10,11 @@ PATTERN = r'Python (?P<version>\d\.\d+) \((?P<status>.*)\)'
 
 DATETIME_FORMAT = '%Y-%m-%d_%H-%M-%S'
 
+LOG_DIR = BASE_DIR / 'logs'
+LOG_FILE = LOG_DIR / 'parser.log'
+
+RESULTS_DIR = BASE_DIR / 'results'
+
 EXPECTED_STATUS = {
     'A': ['Active', 'Accepted'],
     'D': ['Deferred'],
